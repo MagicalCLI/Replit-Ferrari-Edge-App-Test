@@ -1,0 +1,26 @@
+name: Deploy Edge App
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      # Id of the Edge App created with `screenly edge-app create`; read by the CLI.
+      EDGE_APP_ID: ${{ vars.EDGE_APP_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate manifest
+        uses: screenly/cli@master
+        with:
+          screenly_api_token: ${{ secrets.SCREENLY_API_TOKEN }}
+          cli_commands: edge-app validate
+
+      - name: Deploy
+        uses: screenly/cli@master
+        with:
+          screenly_api_token: ${{ secrets.SCREENLY_API_TOKEN }}
+          cli_commands: edge-app deploy

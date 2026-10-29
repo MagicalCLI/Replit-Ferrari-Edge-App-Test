@@ -1,0 +1,32 @@
+syntax: manifest_v1
+description: Shows the Ferrari best-sellers leaderboard from a Replit API behind Replit's access shield.
+author: Your team
+settings:
+  api_url:
+    type: string
+    title: API base URL
+    optional: false
+    help_text: Published Replit URL with no path, e.g. https://your-app.replit.app
+  api_token:
+    type: secret
+    title: Replit external access token
+    optional: false
+    help_text: Production token from the app's Publishing settings.
+  auth_style:
+    type: string
+    title: Auth style
+    optional: true
+    default_value: query
+    help_text: "query sends the token as ?project-protection-bypass=. header sends Authorization: Bearer."
+  use_cors_proxy:
+    type: string
+    title: Use Screenly CORS proxy
+    optional: true
+    default_value: "false"
+    help_text: Set to true to route requests through screenly.cors_proxy_url.
+  refresh_seconds:
+    type: string
+    title: Refresh interval (seconds)
+    optional: true
+    default_value: "60"
+    help_text: How often to re-fetch. Minimum 15.
