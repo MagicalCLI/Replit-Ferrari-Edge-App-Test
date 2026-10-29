@@ -3,20 +3,64 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ferrari best sellers</title>
+  <title>Ferrari, by the numbers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap" />
   <script src="screenly.js?version=1"></script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <main>
     <header>
-      <h1>Ferrari best sellers</h1>
-      <p>Estimated units built, high-volume road-car lines</p>
+      <span class="ring ring-lg"></span>
+      <span class="ring ring-sm"></span>
+      <div class="kicker"><span class="rule"></span><span class="mono">Marque archive / production ledger</span></div>
+      <h1>Ferrari, by the <em>numbers.</em></h1>
+      <p class="dek">A comparison of five high-volume models, assembled from published production estimates—not an official sales ranking.</p>
+      <div class="chips">
+        <span class="chip"><i class="dot sage"></i><span id="count">5</span> documented models</span>
+        <span class="chip"><i class="dot red"></i>Public estimates</span>
+        <span id="updated" class="mono updated"></span>
+      </div>
     </header>
-    <ol id="board" aria-live="polite"></ol>
+
+    <section class="notice" aria-label="Methodology notice">
+      <div class="notice-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+      </div>
+      <div>
+        <div class="notice-head">
+          <h2>Read these figures as estimates, not a definitive leaderboard.</h2>
+          <span class="pill mono">Scope varies</span>
+        </div>
+        <p>Ferrari does not publish a definitive all-time model sales leaderboard. These public production estimates use different scopes: some combine variants, while others cover a single body style or a rounded model family.</p>
+      </div>
+    </section>
+
+    <div class="content">
+      <article class="card chart-card">
+        <div class="card-head">
+          <p class="eyebrow mono">01 / Production estimate</p>
+          <h2>A close-run top five</h2>
+          <p class="sub">Published estimates, units; sorted high to low</p>
+        </div>
+        <div class="plot" id="chart"></div>
+        <div class="card-foot">Bar lengths compare estimates only; source coverage is not uniform.</div>
+      </article>
+
+      <article class="card register-card">
+        <div class="card-head">
+          <p class="eyebrow mono">02 / Model register</p>
+          <h2>What each figure covers</h2>
+        </div>
+        <div class="register" id="register"></div>
+      </article>
+    </div>
+
     <footer>
       <span id="status" data-kind="loading">Loading…</span>
-      <span id="updated"></span>
+      <span class="mono tag">Ferrari production history / reference view</span>
     </footer>
   </main>
   <script src="main.js"></script>

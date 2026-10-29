@@ -1,6 +1,10 @@
 const ENDPOINT = "/api/ferrari/models";
 const CACHE_KEY = "ferrari-board:last";
+const BAR_COLORS = ["#bd2535", "#c66a49", "#d39552", "#738a85", "#a6a092"];
+const nf = new Intl.NumberFormat("en-US");
 const $ = (id) => document.getElementById(id);
+
+/* ---------- Settings and requests ---------- */
 
 function readSettings() {
   const s = (typeof screenly !== "undefined" && screenly.settings) || {};
@@ -39,45 +43,103 @@ async function fetchModels(cfg) {
   }
 }
 
-function setStatus(text, kind) {
-  const el = $("status");
-  el.textContent = text;
-  el.dataset.kind = kind;
+/* ---------- Small DOM helper ---------- */
+
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+/* ---------- Chart (sorted high to low, like the Replit page) ---------- */
+
+function tickStep(max) {
+  const raw = max / 4;
+  const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+  const n = raw / pow;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * pow;
+}
+
+function renderChart(models) {
+  const chart = $("chart");
+  chart.replaceChildren();
+  const sorted = [...models].sort((a, b) => b.estimatedUnits - a.estimatedUnits);
+  if (!sorted.length) {
+    chart.append(el("p", "sub", "No model estimates are available."));
+    return;
+  }
+  const max = sorted[0].estimatedUnits;
+  const step = tickStep(max);
+  const tickValues = [];
+  for (let v = 0; v <= max; v += step) tickValues.push(v);
+
+  const body = el("div", "plot-body");
+  const grid = el("div", "gridlines");
+  for (const v of tickValues) {
+    const line = el("div", "gridline");
+    line.style.left = `${(v / max) * 100}%`;
+    grid.append(line);
+  }
+  body.append(grid);
+
+  sorted.forEach((m, i) => {
+    const row = el("div", "bar-row");
+    const lane = el("div", "bar-lane");
+    const bar = el("div", "bar");
+    bar.style.width = `${(m.estimatedUnits / max) * 100}%`;
+    bar.style.background = BAR_COLORS[i % BAR_COLORS.length];
+    bar.append(el("span", "bar-value", nf.format(m.estimatedUnits)));
+    lane.append(bar);
+    row.append(el("div", "bar-label", m.model), lane, el("div"));
+    body.append(row);
+  });
+
+  const ticks = el("div", "ticks");
+  const lane = el("div", "ticks-lane");
+  for (const v of tickValues) {
+    const t = el("span", "tick", `${(v / 1000).toFixed(0)}k`);
+    t.style.left = `${(v / max) * 100}%`;
+    lane.append(t);
+  }
+  ticks.append(el("div"), lane, el("div"));
+  chart.append(body, ticks);
+}
+
+/* ---------- Model register (API order, like the Replit page) ---------- */
+
+function renderRegister(models) {
+  const list = $("register");
+  list.replaceChildren();
+  for (const m of models) {
+    const entry = el("div", "entry");
+
+    const main = el("div", "entry-main");
+    const name = el("div", "entry-name");
+    name.append(el("span", "model", m.model), el("span", "years", m.years));
+    main.append(name, el("p", "variants", m.variants));
+
+    const units = el("div", "entry-units");
+    units.append(el("span", "units", nf.format(m.estimatedUnits)), el("span", "units-label", m.estimateLabel));
+
+    entry.append(main, units);
+    list.append(entry);
+  }
 }
 
 function render(data) {
-  const models = (data.models || []).slice(0, 5);
-  const max = Math.max(...models.map((m) => m.estimatedUnits), 1);
-  const board = $("board");
-  board.replaceChildren();
-  for (const m of models) {
-    const row = document.createElement("li");
-    row.className = "row";
+  const models = data.models || [];
+  $("count").textContent = models.length;
+  renderChart(models);
+  renderRegister(models);
+}
 
-    const rank = document.createElement("div");
-    rank.className = "rank";
-    rank.textContent = m.rank;
+/* ---------- Status, cache, refresh loop ---------- */
 
-    const name = document.createElement("div");
-    name.className = "name";
-    name.textContent = m.model;
-    const years = document.createElement("small");
-    years.textContent = m.years;
-    name.append(years);
-
-    const track = document.createElement("div");
-    track.className = "track";
-    const bar = document.createElement("div");
-    bar.className = "bar";
-    bar.style.width = `${(m.estimatedUnits / max) * 100}%`;
-    const value = document.createElement("div");
-    value.className = "value";
-    value.textContent = m.estimateLabel;
-    track.append(bar, value);
-
-    row.append(rank, name, track);
-    board.append(row);
-  }
+function setStatus(text, kind) {
+  const node = $("status");
+  node.textContent = text;
+  node.dataset.kind = kind;
 }
 
 function loadCache() {
@@ -107,7 +169,9 @@ async function refresh() {
     render(data);
     saveCache(data);
     setStatus("Live data", "live");
-    $("updated").textContent = `Updated ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+    $("updated").textContent = `Updated ${new Date().toLocaleString("en-US", {
+      month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+    })}`;
   } catch (err) {
     console.warn("Ferrari board fetch failed:", err);
     const cached = loadCache();
